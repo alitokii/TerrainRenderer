@@ -1,0 +1,28 @@
+# Compiler-generated files
+*.o
+*.a
+*.so
+*.dll
+*.elf
+*.dSYM
+*.pdb
+
+# Build directories
+build/
+bin/
+obj/
+
+# IDE-specific files
+*.suo
+*.user
+*.vcxproj
+*.vcxproj.filters
+*.sln
+
+# Temporary files
+*.tmp
+*.swp
+
+# Images
+*.png
+*.jpg
