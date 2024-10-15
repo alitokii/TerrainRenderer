@@ -1,11 +1,13 @@
 CC = g++
-CFLAGS = -std=c++11 -Wall -Wextra
+CFLAGS = -std=c++11 -Wall -Wextra -I.
 LDFLAGS = -lGLEW -lglfw -lGL -lm
 
-# Add any additional source files here
-SOURCES = main.cpp
-
+# Source files
+SOURCES = main.cpp terrain.cpp
 OBJECTS = $(SOURCES:.cpp=.o)
+HEADERS = terrain.h
+
+
 EXECUTABLE = terrain_renderer
 
 all: $(EXECUTABLE)
@@ -13,7 +15,7 @@ all: $(EXECUTABLE)
 $(EXECUTABLE): $(OBJECTS)
 	$(CC) $(OBJECTS) -o $@ $(LDFLAGS)
 
-%.o: %.cpp
+%.o: %.cpp $(HEADERS)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
