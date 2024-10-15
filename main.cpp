@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <vector>
 #include <iostream>
 
@@ -23,9 +24,10 @@ const char* fragmentShaderSource = R"(
     out vec4 FragColor;
     void main()
     {
-        FragColor = vec4(0.5, 0.5, 0.5, 1.0); // Gray color
+        FragColor = vec4(0.5, 0.7, 0.3, 1.0); // Light green color
     }
 )";
+
 
 // Function declarations
 GLFWwindow* initializeWindow();
@@ -38,6 +40,7 @@ int main()
     if (!window) return -1;
 
     GLuint shaderProgram = createShaderProgram();
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // teal background
 
     // Generate terrain data
     std::vector<float> vertices;
@@ -68,10 +71,14 @@ int main()
 
         glUseProgram(shaderProgram);
 
-        // Set up transformation matrices
-        glm::mat4 model = glm::mat4(1.0f);
-        glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 50.0f, 100.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        // Adjust camera position and orientation
+        glm::mat4 view = glm::lookAt(
+            glm::vec3(50.0f, 50.0f, 100.0f),  // Camera position
+            glm::vec3(50.0f, 0.0f, 50.0f),    // Look at center of terrain
+            glm::vec3(0.0f, 1.0f, 0.0f)       // Up vector
+        );
         glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 1000.0f);
+        glm::mat4 model = glm::mat4(1.0f);
 
         GLuint modelLoc = glGetUniformLocation(shaderProgram, "model");
         GLuint viewLoc = glGetUniformLocation(shaderProgram, "view");
@@ -87,6 +94,7 @@ int main()
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
 
     // Cleanup
     glDeleteVertexArrays(1, &VAO);
