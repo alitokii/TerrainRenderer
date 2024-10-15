@@ -32,7 +32,6 @@ const char* fragmentShaderSource = R"(
 // Function declarations
 GLFWwindow* initializeWindow();
 GLuint createShaderProgram();
-void generateTerrain(std::vector<float>& vertices, std::vector<unsigned int>& indices, int width, int height);
 
 int main()
 {
