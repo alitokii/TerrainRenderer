@@ -24,14 +24,19 @@ void generateTerrain(std::vector<float>& vertices, std::vector<unsigned int>& in
             vertices.push_back(y);
             vertices.push_back(static_cast<float>(z));
 
-            // Add normal vector (simplified, just pointing up)
-            vertices.push_back(0.0f);
-            vertices.push_back(1.0f);
-            vertices.push_back(0.0f);
+            // Calculate normal vector (simplified)
+            glm::vec3 normal(0.0f, 1.0f, 0.0f);
+            if (x > 0 && z > 0) {
+                glm::vec3 dx(1.0f, vertices[(z*width + x)*6 + 1] - vertices[(z*width + x - 1)*6 + 1], 0.0f);
+                glm::vec3 dz(0.0f, vertices[(z*width + x)*6 + 1] - vertices[((z-1)*width + x)*6 + 1], 1.0f);
+                normal = glm::normalize(glm::cross(dx, dz));
+            }
+            vertices.push_back(normal.x);
+            vertices.push_back(normal.y);
+            vertices.push_back(normal.z);
         }
     }
 
-    // Indices remain the same
     for (int z = 0; z < height - 1; z++)
     {
         for (int x = 0; x < width - 1; x++)
