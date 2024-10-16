@@ -6,6 +6,10 @@
 #include <vector>
 #include <iostream>
 
+// For camera, globals
+glm::vec3 cameraPos = glm::vec3(50.0f, 100.0f, 150.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
 // Function declarations
 GLFWwindow* initializeWindow();
@@ -53,11 +57,12 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glUseProgram(shaderProgram);
+        processInput(window);
 
         glm::vec3 cameraPos = glm::vec3(50.0f, 50.0f, 100.0f);
         glm::vec3 lightPos = glm::vec3(50.0f, 100.0f, 50.0f);
 
-        glm::mat4 view = glm::lookAt(cameraPos, glm::vec3(50.0f, 0.0f, 50.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
         glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 1000.0f);
         glm::mat4 model = glm::mat4(1.0f);
 
@@ -117,4 +122,18 @@ GLFWwindow* initializeWindow()
     glEnable(GL_DEPTH_TEST);
 
     return window;
+}
+
+// Will listen for keyboard input
+void processInput(GLFWwindow *window)
+{
+    float cameraSpeed = 0.05f;
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        cameraPos += cameraSpeed * cameraFront;
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        cameraPos -= cameraSpeed * cameraFront;
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 }
