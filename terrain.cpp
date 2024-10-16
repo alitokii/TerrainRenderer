@@ -19,7 +19,7 @@ void generateTerrain(std::vector<float>& vertices, std::vector<unsigned int>& in
     {
         for (int x = 0; x < width; x++)
         {
-            float y = sin(x * 0.1) * cos(z * 0.1) * 5.0 + distribution(generator);
+            float y = sin(x * 0.05) * cos(z * 0.05) * 2.0 + distribution(generator) * 0.5;
             vertices.push_back(static_cast<float>(x));
             vertices.push_back(y);
             vertices.push_back(static_cast<float>(z));
