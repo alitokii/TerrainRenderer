@@ -57,6 +57,7 @@ int main()
     glEnableVertexAttribArray(1);
 
     // Main render loop
+    // Main render loop
     while (!glfwWindowShouldClose(window))
     {
         double currentTime = glfwGetTime();
@@ -67,14 +68,12 @@ int main()
             lastTime += 1.0;
         }
 
-
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glUseProgram(shaderProgram);
-        processInput(window);
+        processInput(window); // Corrected function name
 
-        glm::vec3 cameraPos = glm::vec3(50.0f, 50.0f, 100.0f);
-        glm::vec3 lightPos = glm::vec3(50.0f, 100.0f, 50.0f);
+        glm::vec3 lightPos = glm::vec3(50.0f, 200.0f, 50.0f);
 
         glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
         glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 1000.0f);
