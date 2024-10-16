@@ -11,8 +11,14 @@ glm::vec3 cameraPos = glm::vec3(50.0f, 100.0f, 150.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
+bool wireframeMode = false;
+
 // Function declarations
 GLFWwindow* initializeWindow();
+
+// FPS
+double lastTime = 0.0;
+int nbFrames = 0;
 
 int main()
 {
@@ -51,9 +57,17 @@ int main()
     glEnableVertexAttribArray(1);
 
     // Main render loop
-    // In the render loop
     while (!glfwWindowShouldClose(window))
     {
+        double currentTime = glfwGetTime();
+        nbFrames++;
+        if ( currentTime - lastTime >= 1.0 ){ // If last printf() was more than 1 sec ago
+            printf("%f ms/frame\n", 1000.0/double(nbFrames));
+            nbFrames = 0;
+            lastTime += 1.0;
+        }
+
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glUseProgram(shaderProgram);
@@ -117,6 +131,14 @@ GLFWwindow* initializeWindow()
     {
         std::cerr << "Failed to initialize GLEW" << std::endl;
         return nullptr;
+    }
+    if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
+    {
+        wireframeMode = !wireframeMode;
+        if(wireframeMode)
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        else
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
 
     glEnable(GL_DEPTH_TEST);
