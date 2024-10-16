@@ -20,13 +20,20 @@ GLFWwindow* initializeWindow();
 double lastTime = 0.0;
 int nbFrames = 0;
 
+// For camera
+float yaw = -90.0f;
+float pitch = 0.0f;
+float lastX = 400, lastY = 300;
+bool firstMouse = true;
+
+
 int main()
 {
     GLFWwindow* window = initializeWindow();
     if (!window) return -1;
 
     GLuint shaderProgram = createShaderProgram();
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // teal background
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // Set background color
 
     // Generate terrain data
     std::vector<float> vertices;
@@ -47,52 +54,59 @@ int main()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 
-    // Rendering
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
+    // Set up vertex attribute pointers
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
-    // Main render loop
+    GLuint lightPosLoc = glGetUniformLocation(shaderProgram, "lightPos");
+    GLuint viewPosLoc = glGetUniformLocation(shaderProgram, "viewPos");
+
     // Main render loop
     while (!glfwWindowShouldClose(window))
     {
+        // Frame time calculation
         double currentTime = glfwGetTime();
         nbFrames++;
-        if ( currentTime - lastTime >= 1.0 ){ // If last printf() was more than 1 sec ago
-            printf("%f ms/frame\n", 1000.0/double(nbFrames));
+        if (currentTime - lastTime >= 1.0) {
+            printf("%f ms/frame\n", 1000.0 / double(nbFrames));
             nbFrames = 0;
             lastTime += 1.0;
         }
 
+        // Input
+        processInput(window);
+
+        // Rendering
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glUseProgram(shaderProgram);
-        processInput(window); // Corrected function name
 
         glm::vec3 lightPos = glm::vec3(50.0f, 200.0f, 50.0f);
 
+        // Camera/view transformation
         glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
         glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 1000.0f);
         glm::mat4 model = glm::mat4(1.0f);
 
+        // Pass transformation matrices to the shader
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
+        // Pass light and camera position to the shader
         glUniform3fv(lightPosLoc, 1, glm::value_ptr(lightPos));
         glUniform3fv(viewPosLoc, 1, glm::value_ptr(cameraPos));
 
+        // Render the terrain
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 
+        // Swap buffers and poll IO events
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-
 
     // Cleanup
     glDeleteVertexArrays(1, &VAO);
@@ -106,6 +120,9 @@ int main()
 
 GLFWwindow* initializeWindow()
 {
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPosCallback(window, mouse_callback);
+
     if (!glfwInit())
     {
         std::cerr << "Failed to initialize GLFW" << std::endl;
@@ -145,10 +162,45 @@ GLFWwindow* initializeWindow()
     return window;
 }
 
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+    if (firstMouse)
+    {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos; // Reversed since y-coordinates range from bottom to top
+    lastX = xpos;
+    lastY = ypos;
+
+    float sensitivity = 0.1f;
+    xoffset *= sensitivity;
+    yoffset *= sensitivity;
+
+    yaw += xoffset;
+    pitch += yoffset;
+
+    if(pitch > 89.0f)
+        pitch = 89.0f;
+    if(pitch < -89.0f)
+        pitch = -89.0f;
+
+    glm::vec3 front;
+    front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    front.y = sin(glm::radians(pitch));
+    front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+    cameraFront = glm::normalize(front);
+}
+
+
 // Will listen for keyboard input
 void processInput(GLFWwindow *window)
 {
-    float cameraSpeed = 0.05f;
+    float cameraSpeed = 0.5f; // Adjust this value to change movement speed
+
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         cameraPos += cameraSpeed * cameraFront;
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -157,4 +209,23 @@ void processInput(GLFWwindow *window)
         cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        cameraPos += cameraUp * cameraSpeed;
+    if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+        cameraPos -= cameraUp * cameraSpeed;
+
+    // Wireframe toggle (keep this part)
+    if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
+    {
+        static double lastToggleTime = 0.0;
+        double currentTime = glfwGetTime();
+        if (currentTime - lastToggleTime > 0.2) {
+            wireframeMode = !wireframeMode;
+            if(wireframeMode)
+                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            else
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            lastToggleTime = currentTime;
+        }
+    }
 }
