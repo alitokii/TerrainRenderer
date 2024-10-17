@@ -74,20 +74,20 @@ void processInput(GLFWwindow *window)
     if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
         cameraPos -= cameraUp * cameraSpeed;
 
-    // Wireframe toggle (keep this part)
-    if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
-    {
-        static double lastToggleTime = 0.0;
-        double currentTime = glfwGetTime();
-        if (currentTime - lastToggleTime > 0.2) {
-            wireframeMode = !wireframeMode;
-            if(wireframeMode)
-                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            else
-                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-            lastToggleTime = currentTime;
+    // Wireframe toggle
+        if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
+        {
+            static double lastToggleTime = 0.0;
+            double currentTime = glfwGetTime();
+            if (currentTime - lastToggleTime > 0.2) {
+                wireframeMode = !wireframeMode;
+                if(wireframeMode)
+                    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+                else
+                    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                lastToggleTime = currentTime;
+            }
         }
-    }
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)

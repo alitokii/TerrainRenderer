@@ -5,7 +5,7 @@ LDFLAGS = -lGLEW -lglfw -lGL -lm
 # Source files
 SOURCES = main.cpp terrain.cpp shaders.cpp window.cpp
 OBJECTS = $(SOURCES:.cpp=.o)
-HEADERS = terrain.h shaders.h window.h
+HEADERS = terrain.h shaders.h window.h stb_image.h
 
 
 EXECUTABLE = terrain_renderer

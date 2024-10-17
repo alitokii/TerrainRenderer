@@ -62,11 +62,17 @@ void generateTerrain(std::vector<float>& vertices, std::vector<unsigned int>& in
 
 void loadHeightMap(const char* filename, std::vector<float>& heightMap, int& width, int& height) {
     int channels;
+    stbi_set_flip_vertically_on_load(true);  // Flip the image vertically if needed
     unsigned char* data = stbi_load(filename, &width, &height, &channels, 1);
     if (!data) {
         std::cerr << "Failed to load height map: " << filename << std::endl;
+        std::cerr << "Reason: " << stbi_failure_reason() << std::endl;
         return;
     }
+
+    std::cout << "Successfully loaded height map: " << filename << std::endl;
+    std::cout << "Image dimensions: " << width << "x" << height << std::endl;
+    std::cout << "Channels: " << channels << std::endl;
 
     heightMap.resize(width * height);
     for (int i = 0; i < width * height; ++i) {

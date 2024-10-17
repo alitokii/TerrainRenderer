@@ -40,6 +40,17 @@ int main()
     std::vector<unsigned int> indices;
     generateTerrain(vertices, indices,"/home/alitoki/Documents/Skyline_NavAI_Challenge/TerrainRenderer/HeightMapIsland.jpg");
 
+    // Terrain error checking
+    if (vertices.empty() || indices.empty()) {
+            std::cerr << "Failed to generate terrain. Exiting." << std::endl;
+            return -1;
+        }
+
+        // Logging
+        std::cout << "Terrain generated successfully." << std::endl;
+        std::cout << "Vertices: " << vertices.size() / 6 << std::endl;
+        std::cout << "Indices: " << indices.size() << std::endl;
+
     // Create and bind VAO and VBO
     GLuint VAO, VBO, EBO;
     glGenVertexArrays(1, &VAO);
