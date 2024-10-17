@@ -38,7 +38,7 @@ int main()
     // Generate terrain data
     std::vector<float> vertices;
     std::vector<unsigned int> indices;
-    generateTerrain(vertices, indices, 100, 100);
+    generateTerrain(vertices, indices,"/home/alitoki/Documents/Skyline_NavAI_Challenge/TerrainRenderer/HeightMapIsland.jpg");
 
     // Create and bind VAO and VBO
     GLuint VAO, VBO, EBO;
