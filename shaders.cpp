@@ -28,13 +28,28 @@ const char* fragmentShaderSource = R"(
     out vec4 FragColor;
     uniform vec3 lightPos;
     uniform vec3 viewPos;
+
+    vec3 heatmapColor(float t) {
+        vec3 r = vec3(1.0, 0.0, 0.0);
+        vec3 y = vec3(1.0, 1.0, 0.0);
+        vec3 g = vec3(0.0, 1.0, 0.0);
+        vec3 c = vec3(0.0, 1.0, 1.0);
+        vec3 b = vec3(0.0, 0.0, 1.0);
+
+        if (t < 0.25) return mix(b, c, t * 4.0);
+        else if (t < 0.5) return mix(c, g, (t - 0.25) * 4.0);
+        else if (t < 0.75) return mix(g, y, (t - 0.5) * 4.0);
+        else return mix(y, r, (t - 0.75) * 4.0);
+    }
+
     void main()
     {
-        // Color based on height
-        vec3 color = mix(vec3(0.2, 0.7, 0.2), vec3(0.7, 0.7, 0.7), smoothstep(0.0, 10.0, Height));
+        // Normalize height to [0, 1] range
+        float normalizedHeight = (Height + 10.0) / 20.0; // Adjust these values based on your terrain's height range
+        vec3 color = heatmapColor(normalizedHeight);
 
         // Ambient light
-        vec3 ambient = 0.1 * color;
+        vec3 ambient = 0.3 * color;
 
         // Diffuse light
         vec3 lightDir = normalize(lightPos - FragPos);

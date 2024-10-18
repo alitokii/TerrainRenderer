@@ -15,8 +15,12 @@ void generateTerrain(std::vector<float>& vertices, std::vector<unsigned int>& in
     int width, height;
     loadHeightMap(heightMapFile, heightMap, width, height);
 
-    float heightScale = 10.0f; // Adjust this to scale the terrain height
+    if (heightMap.empty()) {
+        std::cerr << "Failed to load height map. Exiting." << std::endl;
+        exit(3);
+    }
 
+    float heightScale = 20.0f;
     for (int z = 0; z < height; z++) {
         for (int x = 0; x < width; x++) {
             float y = heightMap[z * width + x] * heightScale;
