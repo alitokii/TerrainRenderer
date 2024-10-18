@@ -10,20 +10,14 @@
 #include <cmath>
 #include <random>
 
-void generateTerrain(std::vector<float>& vertices, std::vector<unsigned int>& indices, const char* heightMapFile) {
-    std::vector<float> heightMap;
-    int width, height;
-    loadHeightMap(heightMapFile, heightMap, width, height);
+void generateTerrain(std::vector<float>& vertices, std::vector<unsigned int>& indices, int width, int height) {
+    PerlinNoise pn;
+    float heightScale = 50.0f; // Adjust this to change the terrain height
+    float noiseScale = 0.1f; // Adjust this to change the "roughness" of the terrain
 
-    if (heightMap.empty()) {
-        std::cerr << "Failed to load height map. Exiting." << std::endl;
-        exit(3);
-    }
-
-    float heightScale = 20.0f;
     for (int z = 0; z < height; z++) {
         for (int x = 0; x < width; x++) {
-            float y = heightMap[z * width + x] * heightScale;
+            float y = static_cast<float>(pn.noise(x * noiseScale, z * noiseScale, 0.5) * heightScale);
 
             // Position
             vertices.push_back(static_cast<float>(x));
@@ -33,10 +27,10 @@ void generateTerrain(std::vector<float>& vertices, std::vector<unsigned int>& in
             // Normal (calculate using central differences)
             glm::vec3 normal(0.0f, 1.0f, 0.0f);
             if (x > 0 && x < width - 1 && z > 0 && z < height - 1) {
-                float hL = heightMap[z * width + (x - 1)];
-                float hR = heightMap[z * width + (x + 1)];
-                float hD = heightMap[(z - 1) * width + x];
-                float hU = heightMap[(z + 1) * width + x];
+                float hL = static_cast<float>(pn.noise((x - 1) * noiseScale, z * noiseScale, 0.5) * heightScale);
+                float hR = static_cast<float>(pn.noise((x + 1) * noiseScale, z * noiseScale, 0.5) * heightScale);
+                float hD = static_cast<float>(pn.noise(x * noiseScale, (z - 1) * noiseScale, 0.5) * heightScale);
+                float hU = static_cast<float>(pn.noise(x * noiseScale, (z + 1) * noiseScale, 0.5) * heightScale);
                 normal = glm::normalize(glm::vec3(hL - hR, 2.0f, hD - hU));
             }
             vertices.push_back(normal.x);
@@ -45,7 +39,7 @@ void generateTerrain(std::vector<float>& vertices, std::vector<unsigned int>& in
         }
     }
 
-    // Generate indices
+    // Generate indices (this part remains the same)
     for (int z = 0; z < height - 1; z++) {
         for (int x = 0; x < width - 1; x++) {
             unsigned int topLeft = z * width + x;
