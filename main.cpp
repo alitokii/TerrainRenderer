@@ -80,11 +80,14 @@ int main()
         // Frame time calculation
         double currentTime = glfwGetTime();
         nbFrames++;
-        if (currentTime - lastTime >= 1.0) {
-            printf("%f ms/frame\n", 1000.0 / double(nbFrames));
+        if (currentTime - lastTime >= 1.0) { // If last print() was more than 1 sec ago
+            double ms_per_frame = 1000.0 / double(nbFrames);
+            double fps = double(nbFrames) / (currentTime - lastTime);
+            printf("%.1f ms/frame (%.1f FPS)\n", ms_per_frame, fps);
             nbFrames = 0;
             lastTime += 1.0;
         }
+
 
         // Input
         processInput(window);
