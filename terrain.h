@@ -8,3 +8,5 @@ enum class TerrainMode {
 };
 
 void generateTerrain(std::vector<float>& vertices, std::vector<unsigned int>& indices, TerrainMode mode, const char* heightMapFile = nullptr);
+void loadHeightMap(const char* filename, std::vector<float>& heightMap, int& width, int& height);
+glm::vec3 calculateNormal(float hL, float hR, float hD, float hU);
