@@ -74,52 +74,68 @@ int main()
     GLuint lightPosLoc = glGetUniformLocation(shaderProgram, "lightPos");
     GLuint viewPosLoc = glGetUniformLocation(shaderProgram, "viewPos");
 
-    // Main render loop
+    // Main rendering loop
     while (!glfwWindowShouldClose(window))
     {
-        // Frame time calculation
-        double currentTime = glfwGetTime();
-        nbFrames++;
-        if (currentTime - lastTime >= 1.0) { // If last print() was more than 1 sec ago
-            double ms_per_frame = 1000.0 / double(nbFrames);
-            double fps = double(nbFrames) / (currentTime - lastTime);
-            printf("%.1f ms/frame (%.1f FPS)\n", ms_per_frame, fps);
-            nbFrames = 0;
-            lastTime += 1.0;
-        }
+        // Calculate delta time
+        float currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
 
-
-        // Input
+        // Process input
         processInput(window);
 
-        // Rendering
+        // 1. Render depth of scene to texture (from light's perspective)
+        glm::vec3 lightPos(-2.0f, 4.0f, -1.0f);
+        glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 7.5f);
+        glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+        glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+
+        glUseProgram(shadowShaderProgram);
+        glUniformMatrix4fv(glGetUniformLocation(shadowShaderProgram, "lightSpaceMatrix"), 1, GL_FALSE, glm::value_ptr(lightSpaceMatrix));
+
+        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+        glClear(GL_DEPTH_BUFFER_BIT);
+        renderScene(shadowShaderProgram);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        // 2. Render scene as normal with shadow mapping
+        glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glUseProgram(shaderProgram);
 
-        glm::vec3 lightPos = glm::vec3(50.0f, 200.0f, 50.0f);
+        // Set up view and projection matrices
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 view = camera.GetViewMatrix();
 
-        // Camera/view transformation
-        glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-        glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 1000.0f);
-        glm::mat4 model = glm::mat4(1.0f);
-
-        // Pass transformation matrices to the shader
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
+        // Set uniforms
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "lightSpaceMatrix"), 1, GL_FALSE, glm::value_ptr(lightSpaceMatrix));
+        glUniform3fv(glGetUniformLocation(shaderProgram, "lightPos"), 1, glm::value_ptr(lightPos));
+        glUniform3fv(glGetUniformLocation(shaderProgram, "viewPos"), 1, glm::value_ptr(camera.Position));
 
-        // Pass light and camera position to the shader
-        glUniform3fv(lightPosLoc, 1, glm::value_ptr(lightPos));
-        glUniform3fv(viewPosLoc, 1, glm::value_ptr(cameraPos));
+        // Bind shadow map
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, depthMap);
+        glUniform1i(glGetUniformLocation(shaderProgram, "shadowMap"), 0);
 
-        // Render the terrain
-        glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+        // Render the scene
+        renderScene(shaderProgram);
 
-        // Swap buffers and poll IO events
+        // Swap buffers and poll events
         glfwSwapBuffers(window);
         glfwPollEvents();
+
+        // Calculate and print FPS
+        nbFrames++;
+        if (currentFrame - lastTime >= 1.0) {
+            printf("%f ms/frame (%.1f FPS)\n", 1000.0 / double(nbFrames), double(nbFrames));
+            nbFrames = 0;
+            lastTime += 1.0;
+        }
     }
 
     // Cleanup
@@ -130,4 +146,16 @@ int main()
 
     glfwTerminate();
     return 0;
+}
+
+void renderScene(GLuint shader)
+{
+    glm::mat4 model = glm::mat4(1.0f);
+    glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, glm::value_ptr(model));
+
+    // Bind your VAO
+    glBindVertexArray(VAO);
+
+    // Draw your terrain
+    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 }
