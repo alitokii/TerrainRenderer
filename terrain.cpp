@@ -7,28 +7,15 @@
 #include <iostream>
 #include <cmath>
 
-#include <cmath>
-#include <random>
-
-float octavePerlin(PerlinNoise& pn, float x, float y, int octaves, float persistence) {
-    float total = 0;
-    float frequency = 1;
-    float amplitude = 1;
-    float maxValue = 0;
-    for(int i = 0; i < octaves; i++) {
-        total += pn.noise(x * frequency, y * frequency, 0.5) * amplitude;
-        maxValue += amplitude;
-        amplitude *= persistence;
-        frequency *= 2;
-    }
-    return total / maxValue;
-}
-
-void generateTerrain(std::vector<float>& vertices, std::vector<unsigned int>& indices, TerrainMode mode, const char* heightMapFile) {
+void generateTerrain(std::vector<float>& vertices, std::vector<unsigned int>& indices, TerrainMode mode, const char* heightMapFile)
+{
+    // Sets dimensions for the terrains
     int width = 200, height = 200;
+    // Creates vector for height map data
     std::vector<float> heightMap;
     PerlinNoise pn;
 
+    // Error checking for height map file
     if (mode == TerrainMode::HEIGHTMAP_IMAGE) {
         if (heightMapFile == nullptr) {
             std::cerr << "Height map file not provided for HEIGHTMAP_IMAGE mode." << std::endl;
@@ -41,11 +28,16 @@ void generateTerrain(std::vector<float>& vertices, std::vector<unsigned int>& in
         }
     }
 
-    float heightScale = 50.0f;  // Increased for more pronounced terrain
-    float noiseScale = 0.03f;   // Reduced for smoother terrain
+    // Height and Noise scales for the terrain
+    float heightScale = 50.0f;  // Increase for more pronounced terrain
+    float noiseScale = 0.03f;   // Reduce for smoother terrain
 
-    for (int z = 0; z < height; z++) {
-        for (int x = 0; x < width; x++) {
+    // Generates terrain vertices and normals
+    for (int z = 0; z < height; z++)
+    {
+        // Calculates the height of the terrain
+        for (int x = 0; x < width; x++)
+        {
             float y;
             if (mode == TerrainMode::HEIGHTMAP_IMAGE) {
                 y = heightMap[z * width + x] * heightScale;
@@ -53,7 +45,7 @@ void generateTerrain(std::vector<float>& vertices, std::vector<unsigned int>& in
                 y = octavePerlin(pn, x * noiseScale, z * noiseScale, 6, 0.5) * heightScale;
             }
 
-            // Position
+            // Adds vertex position to vertices vector
             vertices.push_back(static_cast<float>(x));
             vertices.push_back(y);
             vertices.push_back(static_cast<float>(z));
@@ -73,7 +65,7 @@ void generateTerrain(std::vector<float>& vertices, std::vector<unsigned int>& in
                     hD = octavePerlin(pn, x * noiseScale, (z - 1) * noiseScale, 6, 0.5) * heightScale;
                     hU = octavePerlin(pn, x * noiseScale, (z + 1) * noiseScale, 6, 0.5) * heightScale;
                 }
-                normal = glm::normalize(glm::vec3(hL - hR, 2.0f, hD - hU));
+                normal = calculateNormal(hL, hR, hD, hU);
             }
             vertices.push_back(normal.x);
             vertices.push_back(normal.y);
@@ -81,7 +73,7 @@ void generateTerrain(std::vector<float>& vertices, std::vector<unsigned int>& in
         }
     }
 
-    // Generate indices (this part remains the same)
+    // Generate indices
     for (int z = 0; z < height - 1; z++) {
         for (int x = 0; x < width - 1; x++) {
             unsigned int topLeft = z * width + x;
@@ -102,22 +94,32 @@ void generateTerrain(std::vector<float>& vertices, std::vector<unsigned int>& in
 
 void loadHeightMap(const char* filename, std::vector<float>& heightMap, int& width, int& height) {
     int channels;
-    stbi_set_flip_vertically_on_load(true);  // Flip the image vertically if needed
+    stbi_set_flip_vertically_on_load(true);  // Flip the image vertically for correct loading
+
+    // Loads height map image
     unsigned char* data = stbi_load(filename, &width, &height, &channels, 1);
+
+    // Error checking for height map image
     if (!data) {
         std::cerr << "Failed to load height map: " << filename << std::endl;
         std::cerr << "Reason: " << stbi_failure_reason() << std::endl;
         return;
     }
 
+    // Logging
     std::cout << "Successfully loaded height map: " << filename << std::endl;
     std::cout << "Image dimensions: " << width << "x" << height << std::endl;
     std::cout << "Channels: " << channels << std::endl;
 
+    // Fills height map vector with image data by resizing to fit
     heightMap.resize(width * height);
     for (int i = 0; i < width * height; ++i) {
         heightMap[i] = static_cast<float>(data[i]) / 255.0f;
     }
 
     stbi_image_free(data);
+}
+
+glm::vec3 calculateNormal(float hL, float hR, float hD, float hU) {
+    return glm::normalize(glm::vec3(hL - hR, 2.0f, hD - hU));
 }
