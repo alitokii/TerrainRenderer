@@ -1,9 +1,6 @@
 #pragma once
 
 #include <GL/glew.h>
-#pragma once
-
-#include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include "terrain.h" // Include this if TerrainMode is defined here

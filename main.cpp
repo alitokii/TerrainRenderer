@@ -51,7 +51,7 @@ int main()
         generateTerrain(vertices, indices, mode);
     } else if (choice == '2') {
         mode = TerrainMode::HEIGHTMAP_IMAGE;
-        generateTerrain(vertices, indices, mode, "/home/alitoki/Documents/Skyline_NavAI_Challenge/TerrainRenderer/HeightMapIsland.jpg");
+        generateTerrain(vertices, indices, mode, "/home/alitoki/Documents/Projects/TerrainRenderer/HeightMapIsland.jpg");
     } else {
         std::cerr << "Invalid choice. Exiting." << std::endl;
         return -1;
