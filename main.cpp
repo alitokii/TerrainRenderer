@@ -38,8 +38,9 @@ int main()
     char choice;
     std::cout << "Choose terrain generation mode:" << std::endl;
     std::cout << "1. Random generation (Perlin noise)" << std::endl;
-    std::cout << "2. Load from image" << std::endl;
-    std::cout << "Enter your choice (1 or 2): ";
+    std::cout << "2. Load from default image" << std::endl;
+    std::cout << "3. Load from custom image file" << std::endl;
+    std::cout << "Enter your choice (1, 2, or 3): ";
     std::cin >> choice;
 
     // Data for terrain generation
@@ -51,7 +52,14 @@ int main()
         generateTerrain(vertices, indices, mode);
     } else if (choice == '2') {
         mode = TerrainMode::HEIGHTMAP_IMAGE;
-        generateTerrain(vertices, indices, mode, "/home/alitoki/Documents/Projects/TerrainRenderer/HeightMapIsland.jpg");
+        std::string defaultImagePath = "./resources/HeightMapIsland.jpg";
+        generateTerrain(vertices, indices, mode, defaultImagePath.c_str());
+    } else if (choice == '3') {
+        mode = TerrainMode::HEIGHTMAP_IMAGE;
+        std::string imagePath;
+        std::cout << "Enter the file path of the image: ";
+        std::cin >> imagePath;
+        generateTerrain(vertices, indices, mode, imagePath.c_str());
     } else {
         std::cerr << "Invalid choice. Exiting." << std::endl;
         return -1;
