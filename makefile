@@ -3,9 +3,9 @@ CFLAGS = -std=c++11 -Wall -Wextra -I.
 LDFLAGS = -lGLEW -lglfw -lGL -lm
 
 # Source files
-SOURCES = main.cpp terrain.cpp shaders.cpp window.cpp perlin.cpp
+SOURCES = main.cpp shaders.cpp perlin.cpp terrain.cpp window.cpp
 OBJECTS = $(SOURCES:.cpp=.o)
-HEADERS = terrain.h shaders.h window.h stb_image.h perlin.h
+HEADERS = shaders.h perlin.h terrain.h window.h
 
 
 EXECUTABLE = terrain_renderer
